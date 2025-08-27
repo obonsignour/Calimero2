@@ -1,0 +1,18 @@
+{
+    "inputs": [
+        {
+            "id": "imaging-key",
+            "type": "promptString",
+            "description": "Imaging API Key"
+        }
+    ],
+    "servers": {
+        "imaging": {
+            "type": "http",
+            "url": "http://localhost:8282/mcp",
+            "headers": {
+                "imaging_api_key": "${input:imaging-key}"
+            }
+        }
+    }
+}

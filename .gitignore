@@ -1,0 +1,66 @@
+# --- Python bytecode & build artifacts ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dll
+.build/
+build/
+dist/
+wheels/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Test & coverage outputs ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.cache/
+
+# --- Linters / type checkers ---
+.mypy_cache/
+.pytype/
+.ruff_cache/
+
+# --- Logs & local data ---
+*.log
+logs/
+tmp/
+*.sqlite3
+*.db
+
+# --- Secrets & environment ---
+.env
+.env.*
+!.env.example
+# If your real Imaging config contains env-specific URLs/keys, ignore it and commit a template instead:
+# config/mcp.json
+!config/mcp.example.json
+
+# --- Docker / Compose extras ---
+docker-compose.override.yml
+# (Compose reads .env by default; already ignored above)
+
+# --- Editors / OS cruft ---
+.idea/
+.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*.orig
+.DS_Store
+Thumbs.db

@@ -1,0 +1,47 @@
+version: "3.9"
+
+name: cast-imaging-agent-stack
+
+services:
+  imaging-mcp:
+    # Replace with your actual Imaging MCP container image and env.
+    # If you already run Imaging MCP elsewhere, you can omit this service
+    # and point the agent's MCP_IMAGING_URL to that host instead.
+    image: ${IMAGING_MCP_IMAGE:-your-imaging-mcp-image:latest}
+    container_name: imaging-mcp
+    ports:
+      - "8282:8282"      # Exposes MCP endpoint at http://localhost:8282/mcp/
+    environment:
+      # Pass whatever your MCP image needs (example below):
+      # - IMAGING_API_KEY=${IMAGING_API_KEY}
+      # - IMAGING_BACKEND_URL=http://your-cast-imaging-backend
+      # - LOG_LEVEL=info
+      # If your MCP image reads the key from headers only, you can remove this.
+      - TZ=UTC
+    networks:
+      - castnet
+
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cast-imaging-agent
+    depends_on:
+      - imaging-mcp
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - IMAGING_API_KEY=${IMAGING_API_KEY}
+      # Inside the compose network, the MCP server is reachable by its service name
+      - MCP_IMAGING_URL=http://imaging-mcp:8282/mcp/
+      # Optional: pin your model (adjust when Sonnet 4 label changes)
+      - ANTHROPIC_MODEL=claude-3-5-sonnet-latest
+      # The agent will still read /app/config/mcp.json; URL is overridden by MCP_IMAGING_URL
+      - MCP_CONFIG_PATH=/app/config/mcp.json
+    ports:
+      - "8000:8000"      # Agent API at http://localhost:8000
+    networks:
+      - castnet
+
+networks:
+  castnet:
+    driver: bridge
