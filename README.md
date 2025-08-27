@@ -41,3 +41,16 @@ Notes
 sudo apt update
 sudo apt install -y python3-venv
 ```
+
+Run the tests
+Single file:
+make test-file TEST=tests/test_api_routes.py
+
+Single test (node id):
+make test-node NODEID=tests/test_api_routes.py::test_impact_route_ok
+
+Keyword expression:
+make test-k K="impact and not api_routes"
+
+All tests:
+make test

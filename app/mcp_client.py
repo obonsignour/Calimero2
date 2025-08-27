@@ -39,4 +39,32 @@ async def list_tools(session) -> List[str]:
     return [t.name for t in tools.tools]
 
 async def call_tool(session, tool_name: str, args: Dict[str, Any]):
-    return await session.call_tool(tool_name, args)
+    result = await session.call_tool(tool_name, args)
+    
+    # Extract the actual content from CallToolResult
+    if hasattr(result, 'content') and result.content:
+        # MCP CallToolResult has a content attribute which is a list
+        content_list = result.content
+        if isinstance(content_list, list) and len(content_list) > 0:
+            first_content = content_list[0]
+            
+            # Handle different content types
+            if hasattr(first_content, 'text'):
+                # Text content - try to parse as JSON
+                import json
+                try:
+                    return json.loads(first_content.text)
+                except (json.JSONDecodeError, AttributeError):
+                    return first_content.text
+            elif hasattr(first_content, 'data'):
+                # Data content
+                return first_content.data
+            else:
+                # Unknown content type, return as-is
+                return first_content
+        else:
+            # Empty or non-list content
+            return content_list
+    else:
+        # No content attribute or empty content, return the result as-is
+        return result

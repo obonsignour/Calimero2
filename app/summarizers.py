@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 import anthropic
 
-from .config import ANTHROPIC_API_KEY, ANTHROPIC_MODEL
+from .config import get_anthropic_api_key, get_anthropic_model
 
 def _join_text_blocks(resp) -> str:
     parts: List[str] = []
@@ -13,7 +13,39 @@ def _join_text_blocks(resp) -> str:
     return "\n".join(parts) if parts else "(No content returned from LLM)"
 
 def summarize_with_anthropic(payload: Dict[str, Any]) -> str:
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    # Get API key dynamically
+    api_key = get_anthropic_api_key()
+    
+    # Debug: Check if API key is loaded
+    if not api_key:
+        raise ValueError("ANTHROPIC_API_KEY is not set or empty")
+    
+    # Debug: Log API key status (first few chars only for security)
+    import logging
+    import os
+    logger = logging.getLogger("cast-imaging-agent.summarizers")
+    logger.debug(f"ANTHROPIC_API_KEY loaded: {api_key[:10]}..." if api_key else "ANTHROPIC_API_KEY is empty")
+    
+    # Ensure no conflicting environment variables are set for Anthropic
+    # Temporarily clear any auth-related env vars that might confuse the client
+    original_env = {}
+    conflicting_vars = ['X_API_KEY', 'AUTHORIZATION', 'AUTH_TOKEN']
+    for var in conflicting_vars:
+        if var in os.environ:
+            original_env[var] = os.environ[var]
+            del os.environ[var]
+    
+    try:
+        # Initialize client with explicit parameters
+        client = anthropic.Anthropic(
+            api_key=api_key,
+            # Explicitly set other auth methods to None to avoid conflicts
+            auth_token=None
+        )
+    finally:
+        # Restore original environment variables
+        for var, value in original_env.items():
+            os.environ[var] = value
     system_msg = (
         "You are CAST Imaging Technical Copilot. "
         "Produce an accurate, concise technical summary for the selected application, "
@@ -49,7 +81,7 @@ Instructions:
 3) Reference concrete components where available; be explicit when info is not available.
 """
     resp = client.messages.create(
-        model=ANTHROPIC_MODEL,
+        model=get_anthropic_model(),
         max_tokens=1200,
         temperature=0.2,
         system=system_msg,
@@ -58,7 +90,39 @@ Instructions:
     return _join_text_blocks(resp)
 
 def summarize_impact_with_anthropic(payload: Dict[str, Any]) -> str:
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    # Get API key dynamically
+    api_key = get_anthropic_api_key()
+    
+    # Debug: Check if API key is loaded
+    if not api_key:
+        raise ValueError("ANTHROPIC_API_KEY is not set or empty")
+    
+    # Debug: Log API key status (first few chars only for security)
+    import logging
+    import os
+    logger = logging.getLogger("cast-imaging-agent.summarizers")
+    logger.debug(f"ANTHROPIC_API_KEY loaded: {api_key[:10]}..." if api_key else "ANTHROPIC_API_KEY is empty")
+    
+    # Ensure no conflicting environment variables are set for Anthropic
+    # Temporarily clear any auth-related env vars that might confuse the client
+    original_env = {}
+    conflicting_vars = ['X_API_KEY', 'AUTHORIZATION', 'AUTH_TOKEN']
+    for var in conflicting_vars:
+        if var in os.environ:
+            original_env[var] = os.environ[var]
+            del os.environ[var]
+    
+    try:
+        # Initialize client with explicit parameters
+        client = anthropic.Anthropic(
+            api_key=api_key,
+            # Explicitly set other auth methods to None to avoid conflicts
+            auth_token=None
+        )
+    finally:
+        # Restore original environment variables
+        for var, value in original_env.items():
+            os.environ[var] = value
     system_msg = (
         "You are CAST Imaging Technical Copilot. Create an impact analysis report for a code change. "
         "Ground ONLY in provided MCP data. Be conservative: call out potential breakages, tests to run, and approvals."
@@ -100,7 +164,7 @@ Report format:
 If data is missing, say 'Not available from Imaging data.'
 """
     resp = client.messages.create(
-        model=ANTHROPIC_MODEL,
+        model=get_anthropic_model(),
         max_tokens=1400,
         temperature=0.2,
         system=system_msg,
